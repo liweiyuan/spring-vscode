@@ -22,6 +22,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import org.hamcrest.Matchers;
+
 @WebMvcTest(UserController.class)
 @ContextConfiguration(classes = { App.class })
 public class UserControllerTest {
@@ -51,9 +53,11 @@ public class UserControllerTest {
         mockMvc.perform(get("/users/{id}", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.id").value(userId))
-                .andExpect(jsonPath("$.name").value("John Doe"))
-                .andExpect(jsonPath("$.email").value("john.doe@example.com"));
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").isNotEmpty())
+                .andExpect(jsonPath("$.data.id").value(userId))
+                .andExpect(jsonPath("$.data.name").value("John Doe"))
+                .andExpect(jsonPath("$.data.email").value("john.doe@example.com"));
     }
 
     /**
@@ -65,7 +69,8 @@ public class UserControllerTest {
         given(userService.getUserById(99L)).willReturn(null);
 
         mockMvc.perform(get("/users/{id}", 99L))
-                .andExpect(status().isNotFound()); // 验证状态码 404
+                .andExpect(status().isOk())
+                .andExpect(content().string(Matchers.containsString("User not found with id: 99"))); //
     }
 
     /**
@@ -85,9 +90,12 @@ public class UserControllerTest {
         mockMvc.perform(post("/users")
                 .contentType(MediaType.APPLICATION_JSON) // 设置 Header
                 .content(objectMapper.writeValueAsString(inputUser))) // 设置 Body
-                .andExpect(status().isCreated()) // 验证状态码 201
-                .andExpect(jsonPath("$.id").value(10L))
-                .andExpect(jsonPath("$.name").value("New User"));
+                .andExpect(status().isOk()) // 验证状态码 201
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").isNotEmpty())
+                .andExpect(jsonPath("$.data.id").value(10L))
+                .andExpect(jsonPath("$.data.name").value("New User"))
+                .andExpect(jsonPath("$.data.email").value("new@test.com"));
     }
 
 }
