@@ -1,6 +1,7 @@
 package com.ex.config;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+import java.time.Instant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,15 +32,14 @@ public class SystemConfig implements InitializingBean {
     public void afterPropertiesSet() throws Exception {
         // Initialization logic can be added here if needed
         // Use TaskScheduler + PeriodicTrigger for fixed-delay scheduling
-        PeriodicTrigger fixedDelayTrigger = new PeriodicTrigger(
-                10, TimeUnit.SECONDS);
+        PeriodicTrigger fixedDelayTrigger = new PeriodicTrigger(Duration.ofSeconds(20));
         fixedDelayTrigger.setFixedRate(false); // fixed delay
         taskScheduler.schedule(createTask("SampleTask"), fixedDelayTrigger);
 
         // Example of scheduling a single-run task using TaskScheduler
         Trigger exampleTrigger = context -> {
             long nextExecutionTime = System.currentTimeMillis() + 15000; // 15 seconds later
-            return new java.util.Date(nextExecutionTime);
+            return Instant.ofEpochMilli(nextExecutionTime);
         };
         taskScheduler.schedule(createTask("TaskSchedulerTask"), exampleTrigger);
 
